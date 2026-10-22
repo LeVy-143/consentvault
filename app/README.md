@@ -5,25 +5,65 @@
 ## Project overview
 
 ### 1. Vision & originality — 25%
-ConsentVault is a contributor-controlled vault for synthetic Vietnamese language research. Consent is specific to one record and one named researcher.
+ConsentVault is a contributor-controlled vault for synthetic Vietnamese language research. Permission applies to one contribution and one named researcher, rather than a blanket dataset export.
 
 ### 2. Trust constraint insight — 20%
-Lan contributes a language passage and a private survey. She requests access to only the passage for An; Bình receives neither. Operating the service does not provide a decryption key.
+Lan contributes a language passage and a private survey. She shares only the passage with An. Bình receives neither; operating the service grants no automatic reader access. This makes participation possible without surrendering every contribution.
 
 ### 3. Value & impact — 20%
-Researchers receive intentionally shared material without a blanket dataset export. Contributors can understand which identity may read each contribution.
+Contributors can understand who may read each record. Researchers receive specifically consented material: An can study Lan’s passage while her survey stays private.
 
 ### 4. Why TideCloak matters — 20%
-Tide identity, embedded public-key verification and DPoP protect API sessions. RelationshipAttestation:1 policies bind a named Tide user to a record and are passed to the Fabric for encryption and decryption. Owner consent is checked by ConsentVault; policy signing and identity governance use Tide. ConsentVault generates no local content key and offers no offline decryption fallback. A signed admin policy declaring threshold at least two is required for policy upload; live quorum enforcement still needs verification.
+The retained live integration uses Tide identity, embedded Ed25519 verification, DPoP and record-specific RelationshipAttestation policies through the SDK. Owner consent is application logic; policy signing and identity governance belong to Tide. Under the organisers’ Plan C, an explicitly labelled offline demo simulates these protections. Its local backend checks ownership, recipient and two distinct demo-admin approvals. These are simulated approvals, not Tide signatures or proof of live quorum.
 
 ### 5. Prototype & storytelling — 15%
-Four screens cover contributions, received records and governance. Tests exercise DPoP replay protection, signed-policy binding, owner consent, denied access and persistence. Hosted and local Tide MCP calls work. Live realm activation currently fails at the container's egress proxy, so Fabric encryption and multi-admin signing are not presented as verified.
+Switch six synthetic identities, create two records, request access for An, observe one approval remain pending and two activate access, then test denied reads and operator self-grants. A persistent audit shows allowed and denied actions. Live licensing, Fabric encryption and multi-admin governance remain unverified.
 
-## Đọc trước khi chạy
+## Chạy demo offline để quay video — Windows
+
+Ban tổ chức đã bổ sung **Plan C**: “Simulated and live integrations are judged exactly the same.” Đã đối chiếu FAQ tại https://tide.org/unlocked/config.js và https://tide.org/unlocked/#plan-c ngày 22/10/2026.
+
+Cài Node.js **24 LTS**, mở PowerShell tại repository:
+
+```powershell
+cd app
+npm.cmd ci
+npm.cmd run dev:demo
+```
+
+Mở **http://127.0.0.1:5174**. Không cần Docker, license, `.env`, adapter, tài khoản Tide, MCP đang chạy hoặc kết nối Tide network. Lần đầu `npm ci` cần Internet để tải dependencies; sau khi cài, demo hoạt động offline. `Ctrl+C` dừng demo.
+
+Banner luôn hiện **“Demo mode — Tide protections simulated”**. Chọn **Demo identity** để đổi Lan, An, Bình, Operator, Admin 1, Admin 2. Đây là impersonation công khai của danh tính giả, không phải đăng nhập thật hay admin độc lập được xác thực.
+
+1. Lan → **My contributions → Create two sample records**. Hai record chỉ chứa sample giả có sẵn; backend không nhận nội dung tùy ý.
+2. Trên **Vietnamese text**, chọn **Request sharing → An**, tick consent rồi **Record my consent**. Private survey không được chọn.
+3. Admin 1 → **Governance → Approve as Admin 1**: vẫn **pending · 1/2**. Duyệt lại bị từ chối; An vẫn chưa mở được.
+4. Admin 2 → **Governance → Approve as Admin 2**: chuyển **active · 2/2**.
+5. An → **Shared with me → Open contribution** đọc passage. Trong **Synthetic access checks**, thử mở survey sẽ bị backend từ chối.
+6. Bình thử mở cả hai: bị từ chối. Operator → Governance → **Try self-grant** và **Try opening record**: đều bị từ chối. **Demo activity log** ghi đủ kết quả.
+
+Để quay lại: **Governance → Reset demo → Confirm reset synthetic demo**. Reset chỉ xóa bảng demo. Dữ liệu và phê duyệt vẫn còn sau reload/restart nếu chưa reset.
+
+Demo API bind `127.0.0.1:3101`, Vite bind `127.0.0.1:5174`; cả hai dùng port riêng. Demo backend bỏ qua `HOST`, `PORT`, `DATABASE_PATH`, `TIDECLOAK_CONFIG` của live và không đọc `.env`. Vite không phục vụ `.demo/`, `data/`, `.setup/` hoặc `.env` qua HTTP. Không expose demo qua tunnel hay dùng dữ liệu thật.
+
+Demo lưu riêng trong **`app/.demo/`** (Git ignore): SQLite và local storage key. AES-GCM tại localhost chỉ giữ sample không ở dạng plaintext trong DB; **server demo có toàn bộ key và nhìn thấy plaintext khi mở**, nên không phải Tide E2EE, Never-Whole-Key hay bảo vệ chống admin máy chủ. Identity header và hai approval rows là mô phỏng; không tạo JWT/policy signature Tide giả.
+
+Kiểm tra tự động (giữ `npm run dev:demo` chạy ở terminal thứ nhất):
+
+```powershell
+npm.cmd run check
+# Cần Chrome/Chromium; script reset toàn bộ dữ liệu demo trước khi thử luồng.
+$env:CHROME_PATH = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+npm.cmd run test:demo:browser
+```
+
+Xem [DEMO.md](DEMO.md) để quay video hai phút và [điểm nối Tide](docs/DEMO-MODE.md). Lệnh **`npm run dev` và `npm start` vẫn là live**, không tự chuyển sang demo khi Tide lỗi. Live không nhận danh tính demo hoặc endpoint reset demo.
+
+## Tích hợp live được giữ nguyên
 
 Ứng dụng mới ở `app/` tại gốc Git repository. FairEnrol tại `../RMIT-ConsentVault/reference/` được giữ nguyên và không được phát triển tiếp.
 
-**Bản này thay cơ chế RSA envelope trước đây bằng policy Tide thật.** Không còn tạo/export private key dữ liệu trong trình duyệt, không còn vault khóa tự tạo hoặc giải mã offline. Database cũ `data/consentvault.sqlite` được giữ nguyên; luồng mới dùng `data/consentvault-policy.sqlite`, không tự di chuyển dữ liệu mã hóa cũ.
+**Nhánh live dùng policy Tide, không dùng RSA envelope prototype trước đây.** Không còn tạo/export private key dữ liệu trong trình duyệt, không còn vault khóa tự tạo hoặc giải mã offline. Database cũ `data/consentvault.sqlite` được giữ nguyên; luồng mới dùng `data/consentvault-policy.sqlite`, không tự di chuyển dữ liệu mã hóa cũ.
 
 Hiện **chưa hoàn tất tích hợp live**: realm mới `consentvault-tide` đã tạo; `setUpTideRealm` trả HTTP 500 do InitializeWallet trong container gặp proxy tunnel 403. HTTP tới ORK từ máy cloud trả 200 nhưng chưa chứng minh container gọi được. Chưa xác nhận license/VRK, chưa liên kết tài khoản Tide, chưa có adapter đầy đủ hay multi-admin quorum. Code không thay những bước này bằng đăng nhập/chữ ký giả. Xem [báo cáo](VERIFICATION.md).
 
@@ -145,4 +185,4 @@ npm.cmd run test:browser
 
 `npm start` phục vụ build/API trên một origin. Nếu đổi sang `http://localhost:3001`, cần đăng ký origin đó và export adapter tương ứng. Database ở `data/consentvault-policy.sqlite`; replay JTI lưu bền vững trong SQLite. Backup nhất quán DB cùng realm/Tide account; không tự dựng lại private key.
 
-Không merge, không nộp bài. Cần hoàn tất [các kiểm tra live còn thiếu](VERIFICATION.md) trước khi tuyên bố demo bảo mật hoàn chỉnh hoặc dùng dữ liệu nghiên cứu thật.
+Theo Plan C, có thể quay và nộp demo mô phỏng có ghi nhãn rõ. Các [kiểm tra live còn thiếu](VERIFICATION.md) vẫn phải hoàn tất trước khi tuyên bố Tide network đã thực thi bảo mật hoặc dùng dữ liệu nghiên cứu thật. Không tự merge hoặc nộp bài.

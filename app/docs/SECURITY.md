@@ -1,5 +1,7 @@
 # ConsentVault: mô hình bảo mật hiện tại
 
+Tài liệu này mô tả **nhánh live** được giữ nguyên. Chế độ `npm run dev:demo` theo Plan C có backend, dữ liệu và cơ chế danh tính riêng; không cung cấp các bảo đảm Tide bên dưới. Xem [DEMO-MODE.md](DEMO-MODE.md) về local storage key, identity switcher và quorum mô phỏng. Demo không phải fallback khi live lỗi.
+
 ## Thay đổi sau khi đọc Tide MCP
 
 Bản đầu dùng AES/RSA trong browser và Tide self-encryption để bọc private bundle. Bản đó **đã được thay thế**, không phải luồng bảo mật đang chạy. Source hiện tại không sinh/reconstruct/export private key dữ liệu và không có offline decrypt fallback. Database cũ được giữ, không tự giải mã/migrate.

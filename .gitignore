@@ -12,6 +12,7 @@ tidecloak.json
 tidecloak.*-backup.json
 .setup/
 .generated/
+.demo/
 data/
 *.sqlite
 *.sqlite-*
