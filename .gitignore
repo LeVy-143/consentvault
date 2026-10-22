@@ -1,0 +1,19 @@
+# Local dependencies and build outputs, including the untouched reference demo.
+node_modules/
+dist/
+test-results/
+*.log
+
+# Credentials, adapters, bootstrap invitations, and persistent application data.
+.env
+.env.*
+!.env.example
+tidecloak.json
+tidecloak.*-backup.json
+.setup/
+.generated/
+data/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*

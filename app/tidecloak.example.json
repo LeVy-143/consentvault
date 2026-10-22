@@ -1,0 +1,9 @@
+{
+  "realm": "<YOUR_TIDE_ENABLED_REALM>",
+  "auth-server-url": "<YOUR_REACHABLE_TIDECLOAK_BASE_URL>",
+  "resource": "<YOUR_PUBLIC_CLIENT_ID>",
+  "jwk": { "keys": [{ "kty": "OKP", "crv": "Ed25519", "x": "<PUBLIC_KEY_FROM_OFFICIAL_ADAPTER_EXPORT>" }] },
+  "vendorId": "<VALUE_FROM_OFFICIAL_ADAPTER_EXPORT>",
+  "homeOrkUrl": "<VALUE_FROM_OFFICIAL_ADAPTER_EXPORT>",
+  "client-origin-auth-<YOUR_APP_ORIGIN>": "<VALUE_FROM_OFFICIAL_ADAPTER_EXPORT>"
+}
