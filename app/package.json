@@ -1,0 +1,46 @@
+{
+  "name": "consentvault",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "predev": "npm run build:policy",
+    "dev": "node scripts/dev.mjs",
+    "predev:api": "npm run build:policy",
+    "dev:api": "node --env-file-if-exists=.env server/index.mjs",
+    "dev:web": "vite --host 0.0.0.0",
+    "build:policy": "node scripts/build-policy.mjs",
+    "build": "npm run build:policy && vite build",
+    "pretest": "npm run build:policy",
+    "start": "node --env-file-if-exists=.env server/index.mjs",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "check": "npm test && npm run build",
+    "test:browser": "node scripts/browser-smoke.mjs",
+    "check:tide": "node --env-file-if-exists=.env scripts/check-tide.mjs",
+    "tide:prepare": "node --env-file-if-exists=.env scripts/bootstrap-tide.mjs prepare",
+    "tide:complete": "node --env-file-if-exists=.env scripts/bootstrap-tide.mjs complete",
+    "tide:status": "node --env-file-if-exists=.env scripts/bootstrap-tide.mjs status",
+    "mcp:install": "npm ci --prefix tools/tide-mcp",
+    "mcp:check": "node tools/tide-mcp/check.mjs",
+    "mcp:check:hosted": "node --use-env-proxy tools/tide-mcp/check.mjs --hosted"
+  },
+  "dependencies": {
+    "@tidecloak/react": "0.14.33",
+    "@tidecloak/js": "0.14.41",
+    "@tideorg/js": "0.14.29",
+    "heimdall-tide": "0.14.41",
+    "express": "5.1.0",
+    "express-rate-limit": "8.2.1",
+    "helmet": "8.1.0",
+    "jose": "5.10.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.7.0",
+    "esbuild": "0.25.12",
+    "vite": "6.4.4"
+  }
+}

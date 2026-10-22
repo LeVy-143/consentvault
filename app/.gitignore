@@ -1,0 +1,10 @@
+node_modules/
+dist/
+data/
+.env
+tidecloak.json
+test-results/
+*.log
+.setup/
+.generated/
+tidecloak.*-backup.json
