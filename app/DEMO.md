@@ -1,19 +1,34 @@
-# Video ConsentVault — hai phút
+# Quay ConsentVault trong hai phút — Plan C
 
-**Chưa quay video end-to-end:** chỉ quay khi có Tide adapter thật, tài khoản Tide độc lập và các kiểm tra network trong VERIFICATION.md đã đạt. Không dùng fixture JWT/ciphertext, role switcher hay chữ ký tự tạo để giả lập cảnh thành công.
+Ban tổ chức cho phép mô phỏng và chấm như live: https://tide.org/unlocked/#plan-c. Video này dùng **demo offline**, luôn giữ banner **“Demo mode — Tide protections simulated”** trong khung hình. Không gọi các phê duyệt hoặc local storage encryption là Tide network thật.
 
-Chuẩn bị trước: Lan có hai record synthetic đã mã hóa với owner policies; An/Bình đã đăng nhập; các admin độc lập có M0 policy active threshold >=2. Dùng browser profiles riêng. Gia hạn policy trước khi quay nếu đã hết hạn một giờ.
+## Chuẩn bị trên Windows
 
-| Thời gian | Màn hình/thao tác | Lời dẫn |
+```powershell
+cd app
+npm.cmd ci
+npm.cmd run dev:demo
+```
+
+Mở **http://127.0.0.1:5174**. Không cần Docker, `.env`, license, tài khoản Tide hoặc mạng Tide. Để bắt đầu sạch: Governance → Reset demo → Confirm reset synthetic demo. Chọn Lan trong Demo identity. Phóng browser khoảng 90–100% để thấy banner và nút thao tác. Có thể quay bằng OBS hoặc công cụ ghi màn hình Windows.
+
+## Kịch bản
+
+| Thời gian | Thao tác thật trong UI | Lời dẫn gợi ý |
 |---|---|---|
-| 0:00–0:15 | Landing, hai thẻ minh họa | “ConsentVault dành cho nghiên cứu tiếng Việt dùng dữ liệu giả. Quyền đồng ý áp dụng cho từng bản ghi và từng người.” |
-| 0:15–0:35 | Lan đăng nhập TideCloak thật; My contributions, hai bản ghi | “Lan giữ khảo sát riêng tư. Nội dung được mã hóa bằng Tide trong browser; server chỉ lưu ciphertext.” |
-| 0:35–0:55 | Lan Request sharing đúng record 1 cho An | “Đây là consent của Lan được backend kiểm tra. Nó chưa phải quyền decrypt. Bản ghi khảo sát không được chọn.” |
-| 0:55–1:15 | Governance, admin độc lập Authorize in Tide enclave | “Tide ký policy cho đúng user key của An, đúng record và quyền read-only, dưới chính sách quản trị. Nếu chưa đủ quorum, không được giả vờ đã cấp quyền.” |
-| 1:15–1:35 | An: Shared with me → Decrypt with Tide | “An đọc record 1 qua Fabric. API không cho An lấy record 2; policy của record 1 không dùng cho record 2.” |
-| 1:35–1:45 | Bình: Shared with me trống | “Cùng có role researcher vẫn không đủ. Bình chưa được cấp policy nào.” |
-| 1:45–2:00 | Operator: self-grant guard 403; bằng chứng quorum thật | “Vận hành dịch vụ không cho quyền đọc. Quorum quản trị khác consent nghiệp vụ. Bản sao plaintext người nhận lưu không thể thu hồi.” |
+| 0:00–0:15 | Overview, chỉ vào banner | “ConsentVault giúp người đóng góp quyết định ai đọc từng bản ghi nghiên cứu tiếng Việt. Theo Plan C, các bảo vệ Tide trong video này được mô phỏng.” |
+| 0:15–0:30 | Lan → My contributions → Create two sample records; mở hai record | “Lan có một đoạn văn và một khảo sát giả. Ban đầu chỉ chủ sở hữu mở được.” |
+| 0:30–0:45 | Trên Vietnamese text: Request sharing → An → tick consent → Record my consent | “Lan chỉ đồng ý chia sẻ đoạn văn cho An. Consent không tự kích hoạt quyền đọc.” |
+| 0:45–1:05 | Admin 1 → Governance → Approve as Admin 1; hiển thị pending 1/2. Nếu kịp, thử duplicate hoặc chuyển An thử mở | “Một admin chưa đủ. Duyệt lại bằng cùng danh tính cũng không tạo thêm phê duyệt.” |
+| 1:05–1:20 | Admin 2 → Governance → Approve as Admin 2; thấy active 2/2 | “Admin thứ hai mới kích hoạt grant cho đúng An và đúng record.” |
+| 1:20–1:40 | An → Shared with me → Open contribution. Trong Synthetic access checks, mở Private survey | “An đọc được đoạn văn. Mở khảo sát bị backend từ chối; quyền không lan sang bản ghi khác.” |
+| 1:40–1:55 | Bình thử mở record; Operator → Governance → Try self-grant | “Bình không có grant. Operator cũng không thể tự cấp quyền đọc.” |
+| 1:55–2:00 | Demo activity log; giữ banner | “Log ghi cả thành công và từ chối. Khi Tide hoạt động lại, SDK và policy signing live sẽ thay các điểm mô phỏng.” |
 
-Có thể cắt bớt thời gian chờ ceremony khi dựng video, nhưng chỉ dùng footage của các thao tác thực và ghi rõ nếu có đoạn chờ được cắt. Không dựng trạng thái Approved trong React.
+Thử đầy đủ trước khi quay: An bị từ chối trước và sau một phiếu; Bình bị từ chối cả hai record; Operator bị từ chối đọc và self-grant. Log phải phản ánh request thực. Có thể cắt đoạn chờ khi dựng video, nhưng không dựng chip Pending/Active hoặc kết quả quyền giả trong editor.
 
-Dữ liệu dùng nút “Use a synthetic sample”. Không nhập dữ liệu nghiên cứu thật. Kết quả “một admin chưa đủ” phải lấy từ live Tide, không dùng số đếm hoặc kết quả fixture làm bằng chứng.
+Hai admin ở đây là **hai danh tính mẫu**, không chứng minh hai con người độc lập hay active Tide quorum. Backend demo giữ local storage key; không có Tide E2EE. Tích hợp live được giữ ở `src/tide-policy.mjs`, `server/auth.mjs`, `server/dpop.mjs` và `server/policies.mjs`; xem [điểm nối](docs/DEMO-MODE.md).
+
+## File nộp
+
+Xuất **MP4 khoảng hai phút, dưới 100 MB** và thêm vào repository, ví dụ `app/demo-video.mp4`. `DEMO.md` là kịch bản, không thay cho video. Không quay mật khẩu, token hoặc recovery. Dùng README gốc có overview dưới 300 từ và link video sau khi đã upload. Không dùng video FairEnrol trong reference làm video ConsentVault.

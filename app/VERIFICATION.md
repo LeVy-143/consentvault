@@ -1,57 +1,49 @@
 # Báo cáo kiểm tra ConsentVault
 
-Cập nhật **22/10/2026** sau khi kết nối MCP hosted/local và sửa tích hợp theo canon Tide. Máy cloud: Node 24.19.0, npm 11.9.0, Docker 28.4.0, Chromium. Chưa chạy trên Windows; hướng dẫn PowerShell đã soạn.
+Cập nhật **22/10/2026** theo Plan C chính thức. Kiểm tra trên cloud Linux: Node 24.19.0, npm 11.9.0, Chromium. Hướng dẫn Windows đã soạn; chưa chạy trực tiếp trên Windows.
 
-## Kết quả hiện tại
+## Bản demo offline
 
-| Kiểm tra | Kết quả thực tế |
+| Kiểm tra | Kết quả |
 |---|---|
-| Codex CLI | 0.163.0, có MCP; `codex mcp add tide --url https://mcp.tide.org/mcp` không ghi được config vì filesystem read-only |
-| Hosted Tide MCP | **Đạt:** initialize xác nhận server 1.9.33, list 22 tools, call `tide_list` trả playbook đúng; lỗi proxy 403 trước đó đã hết |
-| `npm run mcp:check` | **Đạt:** local server @tideorg/mcp 1.9.33, initialize, list 22 tools, call canon/list/playbook thành công |
-| Tài liệu chính thức | Bốn URL được yêu cầu nay đều tải được HTTP 200; đã xác nhận tiêu chí 25/20/20/20/15 |
-| `npm test` | **18 test đạt, 0 lỗi, 0 skip**; dùng issuer và chữ ký fixture có ghi rõ |
-| `npm run build` | Đạt; policy serializer SDK được bundle cho Node, frontend 134 module build thành công |
-| `npm run dev` | Đạt; API 3001 + Vite 5173 khởi động |
-| `npm run test:browser` | Đạt: landing, 3 trang yêu cầu đăng nhập, không role switcher, mobile không overflow, không exception; sign-in bị khóa khi adapter chưa đủ |
-| DPoP relay trên wire | **200**, byte-exact SDK; CSP riêng, Allow-CSP-From `*`; SHA-256 `9d7844b938f0a2565fa910d3d30e9b8797cbfd6e0b73d59d804169a089aea757` |
-| Tide doctor static + running app | **9 PASS, 2 FAIL, 1 WARN**. Hai lỗi là adapter chưa có embedded `jwk` và `vendorId`; warning thiếu client-origin-auth. Relay, server verification và secret checks đạt |
-| `npm run check:tide` | **Chưa hoàn tất, exit 2**: thiếu vendorId, homeOrkUrl, embedded Ed25519 key và chữ ký origin. Không fetch remote JWKS làm fallback |
-| Bootstrap realm mới | Tạo `consentvault-tide` thành công, realm cũ được giữ. `setUpTideRealm` vẫn trả **500**; InitializeWallet trong container gặp proxy tunnel **403** sau khi sửa trust store cho CA proxy. Host gọi ORK trả 200; chưa xác nhận license/VRK |
-| Reference hash | 12 file source/config/tài nguyên giữ nguyên so với baseline; không tính các cache node_modules/dist đã tồn tại từ onboarding |
-| Rà soát trước commit | `git diff --cached --check` đạt; quét 40 file staged không phát hiện token/private key/email license thật hoặc credential hiện hữu. Không stage `.env`, adapter runtime, database, `.setup/`, node_modules hay build outputs; không có thay đổi reference |
-| Project overview | 228 từ, dưới 300; năm mục đã đối chiếu config chính thức |
+| `npm run dev:demo` | Đạt: API 127.0.0.1:3101, Vite 127.0.0.1:5174; kiểm tra socket xác nhận cả hai chỉ bind loopback |
+| `npm run check` | **23 test đạt, 0 lỗi/skip** và production live build thành công; gồm 18 test live cũ và 5 test demo |
+| `npm run test:demo:browser` | Đạt toàn bộ luồng bằng Chromium, thao tác qua UI; HTTPS bị chặn trong suốt bài thử, không phát sinh external HTTP request |
+| `npm run test:browser` | Đạt hồi quy live: landing, protected tabs, không có identity switcher, mobile và sign-in đóng khi thiếu adapter |
+| Nhãn mô phỏng | Banner đúng chuỗi trên landing và workspace; sticky khi scroll; sáu identity mẫu, đổi identity xóa nội dung đã mở |
+| Lan và owner consent | Tạo hai sample, owner mở được cả hai; chỉ owner tạo reader request; request riêng passage cho An |
+| Quorum demo | 0/2 → 1/2 pending → 2/2 active; cùng admin duyệt lại hoặc replay đồng thời không đủ; body không giả approver được |
+| An / Bình / Operator | An bị từ chối trước/sau một phiếu, mở passage sau hai phiếu, survey vẫn bị từ chối. Bình bị từ chối cả hai. Operator self-grant và đọc đều bị từ chối |
+| Audit | Browser/API thấy các sự kiện allowed, pending và denied; không lưu sample plaintext hoặc key trong audit |
+| Persistence / reset | Restart API giữ record và approval; reload browser giữ grant; reset có xác nhận, xóa demo tables; bytes của live DB fixture giữ nguyên |
+| Local storage | SQLite `.demo/` chỉ có local AES-GCM envelope; local key ngoài DB. Đây không phải Tide E2EE; server có thể giải mã |
+| Local boundary | API chặn foreign Origin, Host và thiếu marker/identity. Vite chặn GET `.demo/local-storage.key` với 403 |
+| Tách live | Live config không trả mode demo; live API từ chối demo headers/routes/reset. Không có demo table trong live store |
+| Giao diện | Giữ shell teal/light hiện có, desktop/mobile không overflow, không uncaught browser exception |
 
-Screenshots nội bộ tại `test-results/landing-desktop.png` và `landing-mobile.png` (Git ignore). Không tạo preview link localhost cho Codex web.
+Browser test tự reset **chỉ database demo** trước khi thử. Screenshots nội bộ trong `test-results/demo-*.png` (Git ignore). Chạy ở terminal khác trong khi `npm run dev:demo` đang chạy:
 
-## Suite 18 test chứng minh gì?
+```powershell
+npm.cmd run check
+npm.cmd run test:demo:browser
+```
 
-- Thiếu embedded JWKS hoặc adapter đầy đủ thì API trả 503; không hạ cấp sang Keycloak/OIDC thông thường.
-- JWT EdDSA/issuer/audience/azp/exp/iat/typ/chữ ký; từ chối token giả, ID token và thiếu claim bắt buộc.
-- DPoP proof: scheme, key thumbprint, ath, htm, htu, iat và jti. Bearer replay và proof bị sửa bị từ chối.
-- JTI đã dùng vẫn bị từ chối sau khi đóng/mở lại API và SQLite.
-- Thành viên và Tide user key lấy từ claim đã xác minh; client không tự chọn key hay đổi key đã đăng ký.
-- Lan reserve hai record metadata; chưa có signed owner policy thì chưa upload ciphertext được; trường plaintext bị từ chối.
-- Policy bytes serialize bằng SDK thật, chữ ký Ed25519 thật với **test root key**. API từ chối sai subject/record/role/expiry, chữ ký giả và admin policy threshold 1.
-- Chỉ owner request sharing; operator không thể tự thêm grant. Admin không được upload policy cấp quyền cho chính mình.
-- Sau signed read policy đúng An/record 1, An chỉ lấy được record 1 và policy của mình; GET record 2 trả 404. Bình/operator không có policy phù hợp đều không đọc được qua API.
-- Policy, ACL và ciphertext fixture tồn tại sau restart; DB/WAL/audit không có sentinel plaintext, token hoặc private test key.
+Cần Chrome/Chromium; đặt `CHROME_PATH` nếu không ở vị trí mặc định. Demo không nhận nội dung người dùng tùy ý, chỉ hai sample fake có sẵn. Danh tính có thể chuyển công khai, không có xác thực người thật.
 
-**Không suy rộng:** ciphertext trong suite là opaque fixture, không phải kết quả Tide. Suite không kiểm tra Fabric decrypt và không dùng private test key làm runtime fallback. Những kết quả AES/RSA roundtrip của prototype trước không được tính là kiểm chứng E2EE hiện tại; luồng RSA đó đã bỏ.
+## Tide MCP, tài liệu và live
 
-## Phần bị chặn và bước tiếp theo
+- Đã tải lại `tide.org/unlocked/` và `unlocked/config.js`: có cảnh báo quá tải, Plan C và câu “Simulated and live integrations are judged exactly the same.”
+- Đã chạy lại `npm run mcp:check`: MCP thật @tideorg/mcp 1.9.33, initialize, list 22 tools, call canon/list/playbook đạt. Đọc lại `tide_scenario relationship-attestation` và `tide_canon invariants` cho bản demo.
+- Hosted MCP đã được xác minh initialize/list/call ở lần triển khai trước; CLI global `codex mcp add` vẫn không lưu được vì Codex home read-only. Không nhầm MCP với kết nối Fabric.
+- Live backend/auth/DPoP/policy codec và SDK encrypt/decrypt được giữ. Test live dùng chữ ký fixture thật với test root; opaque ciphertext fixture không chứng minh Fabric encryption.
+- DPoP relay byte-exact SDK vẫn qua checksum khi build. Tide doctor lần đo live trước: **9 PASS, 2 FAIL, 1 WARN** vì thiếu embedded JWK/vendorId/origin signature.
+- Realm cloud `consentvault-tide` từng tạo được nhưng license/VRK chưa xác nhận: `setUpTideRealm` gặp lỗi 500, InitializeWallet/proxy tunnel 403. Chưa có enrollment/adapter đầy đủ; bản demo không thay đổi trạng thái đó.
+- **Chưa kiểm chứng live:** login với adapter đầy đủ, Fabric encrypt/decrypt và refusal sai subject/record/tag, policy signing, M0 active threshold và một admin chưa đủ quorum. Hai phiếu demo không được dùng làm bằng chứng các mục này.
+- Bản đồ thay mô phỏng bằng Tide nằm trong [DEMO-MODE.md](docs/DEMO-MODE.md).
 
-1. **Network container:** hosted MCP đã hoạt động, host gọi ORK được nhưng InitializeWallet trong container còn proxy tunnel 403. Đã bổ sung CA công khai của proxy vào trust store, không tắt TLS. Cần chẩn đoán đúng kết nối outbound của container trước khi resume; không retry license liên tục. Draft save không chứng minh runtime đã kết nối.
-2. **Realm setup:** stage hiện là `created`, chưa xác nhận license/VRK. Email và sự đồng ý Terms đã được chính chủ dự án cung cấp. Không cần hỏi lại hai thông tin đó cho realm này. Master-admin credential hiện hữu chỉ dùng trong bootstrap, không vào app API/log/repository.
-3. **Human Tide account:** sau activation cần chính người dùng liên kết account trong enclave. Chưa có invite vì chưa qua bước ORK. Không hỏi mật khẩu/recovery qua chat, không tạo account giả. Browser người dùng phải truy cập được instance; localhost cloud khác localhost Windows.
-4. **Adapter và QEA:** export chính thức có Ed25519 JWK/vendor/origin signature; hoàn tất IGA. Thêm admin độc lập, regenerate/commit M0 active threshold >=2; không chỉ đếm admin hay dựa vào firstAdmin threshold 1.
-5. **Live policy/E2EE:** Lan tạo hai record bằng SDK; admin ký owner policy và read-only policy cho An; An chỉ decrypt record 1. Bình/operator, sai tag, thêm tag, thiếu role và copy policy người khác đều phải bị ORK từ chối. Chưa chạy các bước này.
-6. **Live quorum:** một admin chưa đủ phải không tạo được quyền nhạy cảm; sau đủ approvals mới được thực thi. Policy upload guard hoặc chữ ký fixture không thay được kiểm tra này. UI vẫn not verified.
+## Git và deliverables
 
-## Thay đổi được giữ để task sau tiếp tục
-
-- Code hiện dùng built-in RelationshipAttestation:1, embedded JWKS và DPoP, không dùng local RSA vault.
-- Database prototype cũ còn nguyên; luồng mới dùng `data/consentvault-policy.sqlite`. Không tự giải mã/migrate.
-- Source bootstrap là additive, không stop/wipe container; state trong `.setup/`, không in token/invite.
-- Hướng dẫn MCP và kiểm tra kết nối có ở `docs/TIDE-MCP.md`, `tools/tide-mcp/`.
-- README Windows, DEMO hai phút và SECURITY đã cập nhật. Chưa merge/push/nộp bài hoặc publish snapshot mới.
+- FairEnrol/reference được giữ nguyên, không có diff so với main; kiểm tra lại hash baseline của 12 file source/config/tài nguyên.
+- `.demo/`, local key, database, `.env`, `.setup/`, adapter runtime, node_modules, dist và test-results bị Git ignore. Trước commit kiểm tra staged diff và quét secrets.
+- README gốc và app có Project overview dưới 300 từ, trả lời đủ năm tiêu chí. `DEMO.md` hướng dẫn quay video mô phỏng hai phút.
+- Chưa quay/nộp video MP4; chưa merge PR hoặc nộp bài tự động.

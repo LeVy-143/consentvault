@@ -1,5 +1,11 @@
 # Nguồn Tide đã đọc và mức độ xác minh
 
+## Cập nhật Plan C — 22/10/2026
+
+Đã tải lại https://tide.org/unlocked/ và https://tide.org/unlocked/config.js. Trang có cảnh báo network quá tải và mục https://tide.org/unlocked/#plan-c; FAQ xác nhận: “Simulated and live integrations are judged exactly the same.” Vì vậy thêm demo offline được ghi nhãn riêng; các ghi chú live phía dưới vẫn giữ mức kiểm chứng cũ.
+
+Đã gọi lại MCP `tide_scenario relationship-attestation` và `tide_canon invariants`: tiếp tục dùng mô hình đúng user/record, role, consent và governance riêng. Quy tắc local hai admin chỉ mô phỏng ceremony; local AES không phải Never-Whole-Key, và không đưa key demo vào luồng live. Bản đồ điểm nối nằm trong [DEMO-MODE.md](DEMO-MODE.md).
+
 Cập nhật **22/10/2026**. Trang chính thức hiện truy cập được; đã gọi cả hosted MCP và MCP local thật, không chỉ đọc README của package.
 
 ## Nguồn web đã tải thành công HTTP 200
